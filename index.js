@@ -4,7 +4,7 @@ const fs = require('fs');
 const electron = require('electron');
 const config = require('./config');
 
-const {app, BrowserWindow} = electron;
+const {app, BrowserWindow, Tray, Menu} = electron;
 
 require('electron-debug')();
 require('electron-dl')();
@@ -47,12 +47,7 @@ function createMainWindow() {
       }
     } else {
       e.preventDefault();
-
-      if (process.platform === 'darwin') {
-        app.hide();
-      } else {
-        app.quit();
-      }
+      mainWindow.hide();
     }
   });
 
@@ -65,7 +60,6 @@ app.on('ready', () => {
 
   page.on('dom-ready', () => {
     page.insertCSS(fs.readFileSync(path.join(__dirname, 'browser.css'), 'utf8'));
-    mainWindow.show();
   });
 
   page.on('new-window', (e, url) => {
@@ -88,6 +82,21 @@ app.on('ready', () => {
       }
     });
   });
+
+  var appIcon = null;
+  appIcon = new Tray(path.join(__dirname, 'static', 'Icon.png'));
+  var contextMenu = Menu.buildFromTemplate([
+    {label: 'Show app', click: function() {
+      mainWindow.show();
+      appIcon.setContextMenu(contextMenu);
+    }},
+    {label: 'Quit', click: function() {
+      app.quit();
+    }}
+  ]);
+  appIcon.setToolTip('Trello');
+  appIcon.setContextMenu(contextMenu);
+
 
   const template = [{
     label: 'Application',
